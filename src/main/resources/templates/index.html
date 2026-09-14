@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Plagiarism Checker</title>
+</head>
+<body>
+    <h1>Plagiarism Checker</h1>
+    <form method="post" th:action="@{/check}">
+        <textarea name="textA" placeholder="Text A" rows="5" cols="40"></textarea><br>
+        <textarea name="textB" placeholder="Text B" rows="5" cols="40"></textarea><br>
+        <button type="submit">Check Similarity</button>
+    </form>
+    <h2 th:if="${score != null}">Similarity: <span th:text="${score}"></span>%</h2>
+</body>
+</html>
