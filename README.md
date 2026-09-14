@@ -40,14 +40,6 @@ Three shared entities underpin both the similarity engine and the dashboard:
 - `Batch` — a group of submissions for one assignment run
 - `SimilarityResult` — a computed pairwise score between two submissions
 
-## Team
-
-| Module | Owner | Responsibilities |
-|---|---|---|
-| Similarity Engine (Text + AST) | Member A | Text similarity algorithms, AST parsing & structural comparison, threshold logic |
-| Backend & Database | Member B | Submission storage, batch processing pipeline, pairwise matrix computation, APIs |
-| Instructor Dashboard (UI) | Member C | Heatmap visualization, diff viewer, flagged-pair review flow, report export |
-
 ## Status
 
 🚧 Early build phase — stack and module ownership are finalized; core entity field definitions (`Submission`, `Batch`, `SimilarityResult`) are being locked before implementation begins in earnest.
