@@ -70,7 +70,3 @@ Validated by seeding a test batch with deliberately plagiarized submissions (ren
 - Cross-semester / cross-batch plagiarism detection
 - LMS integration (Moodle, Google Classroom) for direct submission ingestion
 - ML-based similarity scoring trained on labeled plagiarism examples
-
-## License
-
-_TBD_
