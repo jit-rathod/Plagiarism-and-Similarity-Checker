@@ -1,15 +1,123 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Plagiarism Checker</title>
+    <meta charset="UTF-8">
+    <title>Similarity & AI-Content Checker — Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Plagiarism Checker</h1>
-    <form method="post" th:action="@{/check}">
-        <textarea name="textA" placeholder="Text A" rows="5" cols="40"></textarea><br>
-        <textarea name="textB" placeholder="Text B" rows="5" cols="40"></textarea><br>
-        <button type="submit">Check Similarity</button>
-    </form>
-    <h2 th:if="${score != null}">Similarity: <span th:text="${score}"></span>%</h2>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-1 text-gray-800">Submission Checker</h1>
+        <p class="text-sm text-gray-500 mb-6">Prototype — choose a check, then submit</p>
+
+        <div class="flex gap-2 mb-6 border-b">
+            <a th:href="@{/(mode='similarity')}"
+               th:class="${mode == 'similarity'} ? 'px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-semibold' : 'px-4 py-2 text-gray-500 hover:text-gray-700'">
+               Text Similarity
+            </a>
+            <a th:href="@{/(mode='ai')}"
+               th:class="${mode == 'ai'} ? 'px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-semibold' : 'px-4 py-2 text-gray-500 hover:text-gray-700'">
+               AI Content Check
+            </a>
+        </div>
+
+        <div th:if="${mode == 'similarity'}">
+            <form th:action="@{/check}" method="post" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Submission A</label>
+                    <textarea name="submissionA" rows="6" required
+                              class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300"
+                              th:text="${submissionA}"
+                              placeholder="Paste the first submission here..."></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Submission B</label>
+                    <textarea name="submissionB" rows="6" required
+                              class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300"
+                              th:text="${submissionB}"
+                              placeholder="Paste the second submission here..."></textarea>
+                </div>
+
+                <button type="submit"
+                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700">
+                    Compare
+                </button>
+            </form>
+
+            <div th:if="${result != null}" class="mt-6 p-4 bg-gray-50 border rounded-lg">
+                <h2 class="text-lg font-semibold mb-2">Result</h2>
+
+                <p>
+                    <strong>Overall similarity:</strong>
+                    <span th:text="${result.overallPercent()} + '%'"
+                          th:class="${flagged} ? 'text-red-600 font-bold' : 'text-green-600 font-bold'"></span>
+                    <span th:if="${flagged}" class="ml-2 text-xs uppercase tracking-wide text-red-600 font-semibold">Flagged</span>
+                </p>
+
+                <p class="text-sm text-gray-600 mt-2">
+                    Cosine similarity (word-frequency vectors): <span th:text="${result.cosinePercent()} + '%'"></span>
+                </p>
+
+                <p class="text-sm text-gray-600" th:if="${result.usedLevenshtein()}">
+                    Levenshtein similarity (short-text check): <span th:text="${result.levenshteinPercent()} + '%'"></span>
+                </p>
+
+                <p class="text-xs text-gray-400 mt-3">
+                    Threshold for flagging is fixed at 70% in this prototype — will move to a configurable
+                    setting once the instructor dashboard and DB layer are built.
+                </p>
+            </div>
+        </div>
+
+        <div th:if="${mode == 'ai'}">
+            <p class="text-xs text-amber-600 mb-4">
+                Heuristic-based, in-house scoring (no third-party API) — based on sentence-length
+                variability and lexical diversity. Prototype-stage signal, not a trained classifier.
+            </p>
+
+            <form th:action="@{/check-ai}" method="post" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Submission</label>
+                    <textarea name="content" rows="10" required
+                              class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300"
+                              th:text="${aiContent}"
+                              placeholder="Paste the submission to check here..."></textarea>
+                </div>
+
+                <button type="submit"
+                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700">
+                    Analyze
+                </button>
+            </form>
+
+            <div th:if="${aiResult != null}" class="mt-6 p-4 bg-gray-50 border rounded-lg">
+                <h2 class="text-lg font-semibold mb-2">Result</h2>
+
+                <p>
+                    <strong>AI-content likelihood:</strong>
+                    <span th:text="${aiResult.aiLikelihoodPercent()} + '%'"
+                          th:class="${aiFlagged} ? 'text-red-600 font-bold' : 'text-green-600 font-bold'"></span>
+                    <span th:if="${aiFlagged}" class="ml-2 text-xs uppercase tracking-wide text-red-600 font-semibold">Likely AI</span>
+                </p>
+
+                <p class="text-sm text-gray-600 mt-2">
+                    Sentence-length burstiness: <span th:text="${aiResult.burstinessPercent()} + '%'"></span>
+                    <span class="text-gray-400">(lower = more uniform = more AI-like)</span>
+                </p>
+
+                <p class="text-sm text-gray-600">
+                    Lexical diversity: <span th:text="${aiResult.lexicalDiversityPercent()} + '%'"></span>
+                    <span class="text-gray-400">(lower = more repetitive = more AI-like)</span>
+                </p>
+
+                <p class="text-xs text-gray-400 mt-3">
+                    Based on <span th:text="${aiResult.sentenceCount()}"></span> sentences,
+                    <span th:text="${aiResult.wordCount()}"></span> words. Threshold for flagging
+                    is fixed at 60% in this prototype.
+                </p>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
