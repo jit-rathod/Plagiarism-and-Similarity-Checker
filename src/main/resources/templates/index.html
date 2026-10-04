@@ -127,7 +127,8 @@
                     is fixed at 60% in this prototype.
                 </p>
 
-                <form th:if="${aiResult != null}" th:action="@{/export-pdf-ai}" method="post" class="mt-4">                    <input type="hidden" name="content" th:value="${aiContent}">
+                <form th:if="${aiResult != null}" th:action="@{/export-pdf-ai}" method="post" class="mt-4">                    
+                    <input type="hidden" name="content" th:value="${aiContent}">
                     <button type="submit"
                             class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">
                         Download Report (PDF)
