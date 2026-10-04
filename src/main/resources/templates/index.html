@@ -8,7 +8,7 @@
 <body class="bg-gray-100 min-h-screen p-8">
     <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
         <h1 class="text-2xl font-bold mb-1 text-gray-800">Submission Checker</h1>
-        <p class="text-sm text-gray-500 mb-6">Prototype — choose a check, then submit</p>
+        <p class="text-sm text-gray-500 mb-6">Prototype — paste text or upload a PDF, then submit</p>
 
         <div class="flex gap-2 mb-6 border-b">
             <a th:href="@{/(mode='similarity')}"
@@ -22,21 +22,25 @@
         </div>
 
         <div th:if="${mode == 'similarity'}">
-            <form th:action="@{/check}" method="post" class="space-y-4">
+            <form th:action="@{/check}" method="post" enctype="multipart/form-data" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Submission A</label>
-                    <textarea name="submissionA" rows="6" required
+                    <textarea name="submissionA" rows="6"
                               class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300"
                               th:text="${submissionA}"
-                              placeholder="Paste the first submission here..."></textarea>
+                              placeholder="Paste the first submission here, or upload a PDF below..."></textarea>
+                    <input type="file" name="fileA" accept="application/pdf"
+                           class="mt-1 text-sm text-gray-500">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Submission B</label>
-                    <textarea name="submissionB" rows="6" required
+                    <textarea name="submissionB" rows="6"
                               class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300"
                               th:text="${submissionB}"
-                              placeholder="Paste the second submission here..."></textarea>
+                              placeholder="Paste the second submission here, or upload a PDF below..."></textarea>
+                    <input type="file" name="fileB" accept="application/pdf"
+                           class="mt-1 text-sm text-gray-500">
                 </div>
 
                 <button type="submit"
@@ -63,10 +67,14 @@
                     Levenshtein similarity (short-text check): <span th:text="${result.levenshteinPercent()} + '%'"></span>
                 </p>
 
-                <p class="text-xs text-gray-400 mt-3">
-                    Threshold for flagging is fixed at 70% in this prototype — will move to a configurable
-                    setting once the instructor dashboard and DB layer are built.
-                </p>
+                <form th:if="${result != null}" th:action="@{/export-pdf}" method="post" class="mt-4">
+                    <input type="hidden" name="submissionA" th:value="${submissionA}">
+                    <input type="hidden" name="submissionB" th:value="${submissionB}">
+                    <button type="submit"
+                            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">
+                        Download Report (PDF)
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -76,13 +84,15 @@
                 variability and lexical diversity. Prototype-stage signal, not a trained classifier.
             </p>
 
-            <form th:action="@{/check-ai}" method="post" class="space-y-4">
+            <form th:action="@{/check-ai}" method="post" enctype="multipart/form-data" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Submission</label>
-                    <textarea name="content" rows="10" required
+                    <textarea name="content" rows="10"
                               class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300"
                               th:text="${aiContent}"
-                              placeholder="Paste the submission to check here..."></textarea>
+                              placeholder="Paste the submission to check here, or upload a PDF below..."></textarea>
+                    <input type="file" name="file" accept="application/pdf"
+                           class="mt-1 text-sm text-gray-500">
                 </div>
 
                 <button type="submit"
@@ -116,6 +126,13 @@
                     <span th:text="${aiResult.wordCount()}"></span> words. Threshold for flagging
                     is fixed at 60% in this prototype.
                 </p>
+
+                <form th:if="${aiResult != null}" th:action="@{/export-pdf-ai}" method="post" class="mt-4">                    <input type="hidden" name="content" th:value="${aiContent}">
+                    <button type="submit"
+                            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">
+                        Download Report (PDF)
+                    </button>
+                </form>
             </div>
         </div>
     </div>
